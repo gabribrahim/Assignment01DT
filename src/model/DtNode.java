@@ -3,6 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javafx.scene.control.TextArea;
 import prefuse.data.Node;
 import prefuse.data.Tree;
 import prefuse.demos.TreeView;
@@ -14,6 +15,8 @@ public class DtNode {
 	
 	boolean debug;
 	ArrayList <DtNode> children					  	= new ArrayList<>();
+	DtNode leftSideNode;
+	DtNode rightSideNode;
 	ArrayList<LabelledDataInstance> instancesTrue 	= new ArrayList<>();
 	ArrayList<LabelledDataInstance> instancesFalse 	= new ArrayList<>();
 	ArrayList<String> attrsList;
@@ -23,10 +26,37 @@ public class DtNode {
 	Node visualRepNode;
 	public double geniImpurityThreshold					=0.0;
 	int numberOfAttrsAtInitiation ;
+	String baseClassifier							= "live";
 	
+	public String predict(LabelledDataInstance testInstance, TextArea debug) {
+		if (isEmpty()) {
+			return baseClassifier;
+		}
+		if (isPure()) {
+			return containedInstances.get(0).labelName;
+		}
+		int featureIndex							= originalAttrslist.indexOf(this.attributeToSplitOn);
+		boolean valueOfFeature						= testInstance.featureListAsValues.get(featureIndex);
+
+		String debugMessage =" Node>"+this.attributeToSplitOn+" "+containedInstances.size()+" "+ valueOfFeature+"\n";
+		pp(debugMessage);
+		
+		debug.insertText(0, debugMessage);
+		if (valueOfFeature) {
+			leftSideNode.predict(testInstance,debug);
+		}
+		else {
+			rightSideNode.predict(testInstance,debug);
+		}
+			
+		return containedInstances.get(0).labelName;
+	}
 	public String getBestAttr() {
 		
-		if (isPure()) {
+		if (isEmpty()) {
+			return "BaseClassifier Live";
+		}
+		if (isPure() && !isEmpty()) {
 			return containedInstances.get(0).labelName + "\n"+computeNodeProbabilities();
 		}
 		if (bestAttr.equals("")){return nodeName;}
@@ -50,6 +80,14 @@ public class DtNode {
 		System.out.println(containedInstances.size()+" " + attrsList.size());
 	}
 	
+	private void pp2(ArrayList<?> listOfthingsToPrint) {
+		if (!this.debug){return;}
+		for (Object toprint: listOfthingsToPrint) {
+			System.out.print(toprint);
+			System.out.print(",");
+		}
+		System.out.println("");
+	}
 	private void pp(String message) {
 //		if (containedInstances.size()<49) {System.out.println(message);}
 		if (this.debug) {System.out.println(message);}
@@ -89,16 +127,20 @@ public class DtNode {
 		
 		int liveCount 				= 0;
 		int dieCount				= 0;
+		double trueImpurity		    = 0;
+		double falseImpurity		= 0;
 		for (LabelledDataInstance instance:instancesTrue) {
 			if (instance.labelName.equals("live")) {liveCount ++;}
 			if (instance.labelName.equals("die")) {dieCount ++;}
 		}
+		if (instancesTrue.size()>0) {
+			double weightOfTrueInstances		= (double) instancesTrue.size() /(double)containedInstances.size();
+			trueImpurity						= weightOfTrueInstances*((2*(double)liveCount *(double)dieCount)
+													/Math.pow((liveCount+dieCount),2)) ;
+			}
 		
-		double weightOfTrueInstances		= (double) instancesTrue.size() /(double)containedInstances.size();
-		double trueImpurity					= weightOfTrueInstances*((2*(double)liveCount *(double)dieCount)
-												/Math.pow((liveCount+dieCount),2)) ;
 //		System.out.print(weightOfTrueInstances + " ");
-		pp("True Impurity = "+trueImpurity + "LiveCount:"+liveCount+" DieCount:"+dieCount);
+		pp((instancesTrue.size()>0) + " --True Impurity = "+trueImpurity + "LiveCount:"+liveCount+" DieCount:"+dieCount);
 
 		liveCount 							= 0;
 		dieCount							= 0;
@@ -106,10 +148,14 @@ public class DtNode {
 			if (instance.labelName.equals("live")) {liveCount ++;}
 			if (instance.labelName.equals("die")) {dieCount ++;}
 		}
-		double weightOfFalseInstances		= (double) instancesFalse.size() /(double)containedInstances.size();
-		double falseImpurity				= weightOfFalseInstances*(2*(double)liveCount *(double)dieCount)
-												/Math.pow((liveCount+dieCount),2) ;		
-		pp("False Impurity = "+falseImpurity+ "LiveCount:"+liveCount+" DieCount:"+dieCount);
+		
+		if (instancesFalse.size()>0) {
+			double weightOfFalseInstances		= (double) instancesFalse.size() /(double)containedInstances.size();
+			falseImpurity						= weightOfFalseInstances*(2*(double)liveCount *(double)dieCount)
+													/Math.pow((liveCount+dieCount),2) ;
+			
+			}
+		pp((instancesFalse.size()>0)+" --False Impurity = "+falseImpurity+ "LiveCount:"+liveCount+" DieCount:"+dieCount);
 		
 		double nodeImpurity			= (trueImpurity + falseImpurity)/2.0;
 		pp("Avg Impurity = "+nodeImpurity);
@@ -190,8 +236,10 @@ public class DtNode {
 			Node childVisualNode				= decisionTreeModel.addChild(startNode);
 			childVisualNode.setString("label", child.getBestAttr());
 			child.visualNode(childVisualNode, decisionTreeModel,decisionTreeView);
-//			decisionTreeView.getVisualization().getVisualItem("label", childVisualNode).dtName.replace("TEST",attributeToSplitOn);
+			
 		}
+		
+
 		
 	}
 	
@@ -206,12 +254,14 @@ public class DtNode {
 		
 		ArrayList<String> attrsClone= new ArrayList<String>(attrsList) ;
 //		System.out.println(attributeToSplitOn+" List size" + attrsList.size() +" "+ attrsClone.size());
-		DtNode leftSideNode			= new DtNode(instancesTrue,attrsClone,originalAttrslist);
-		DtNode rightSideNode		= new DtNode(instancesFalse,attrsClone,originalAttrslist);
-		leftSideNode.geniImpurityThreshold= this.geniImpurityThreshold;
-		rightSideNode.geniImpurityThreshold=this.geniImpurityThreshold;
+		leftSideNode				= new DtNode(instancesTrue,attrsClone,originalAttrslist);
+		rightSideNode				= new DtNode(instancesFalse,attrsClone,originalAttrslist);
+		leftSideNode.geniImpurityThreshold	= this.geniImpurityThreshold;
+		rightSideNode.geniImpurityThreshold	=this.geniImpurityThreshold;
 		leftSideNode.branchNode();
 		rightSideNode.branchNode();
+		
+		
 		
 		this.children.add(leftSideNode);
 		this.children.add(rightSideNode);

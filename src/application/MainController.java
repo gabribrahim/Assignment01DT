@@ -27,6 +27,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import model.DataSetsLoader;
 import model.DtNode;
+import model.LabelledDataInstance;
 import prefuse.Display;
 import prefuse.Visualization;
 import prefuse.data.Node;
@@ -52,10 +53,11 @@ public class MainController {
 	public Node treeRootVisualNode;
 	public Tree decisionTreeModel;
 	public TreeView decisionTreeView;
+	public DtNode rootNode;
 	public void setMain(Main main) {
 		this.main = main;
-		loadDataSet();		
-		buildTree();
+//		loadDataSet();		
+//		buildTree();
 //		expandAllNode();
 //		zoomToFitTree();
 //		TestSN.setContent(graphComponent);
@@ -106,7 +108,23 @@ public class MainController {
 		decisionTreeView.getVisualization().run("edgeColor");
 		
 	}
-
+	
+	public void measurePerformanceOnTestDataSet() {
+		int hit								= 0;
+		for (LabelledDataInstance testInstance : myDataLoader.testDataSetList) {
+			String prediction = rootNode.predict(testInstance,StatusTA);
+			int testInstanceIndex = myDataLoader.testDataSetList.indexOf(testInstance);
+			StatusTA.insertText(0, "["+testInstanceIndex+"]"+ prediction +"<<>>"+testInstance.labelName+"\n");
+			if (prediction.equals(testInstance.labelName)) {
+				hit++;
+			}
+		double accuracy						= (double)hit /(double)myDataLoader.testDataSetList.size();
+		StatusLB.setText("Decision Tree @ Geni Impurity Threshold : "+
+		GeniThresholdTF.getText() + "Has Accuracy = "+accuracy
+		+"\nSize of TestSet"+myDataLoader.testDataSetList.size() + " Correct Predictions="+hit);
+		}
+	}
+	
 	public void buildTree() {
 		decisionTreeModel					= new Tree();
 		
@@ -126,7 +144,7 @@ public class MainController {
 		ArrayList<String> attrs						= new ArrayList<String>(myDataLoader.dataSetAttrsLabels);
 		ArrayList<String> originalAttrs				= new ArrayList<String>(myDataLoader.dataSetAttrsLabels);
 		
-		DtNode rootNode								= new DtNode(myDataLoader.trainingDataSetList,attrs,originalAttrs);
+		rootNode									= new DtNode(myDataLoader.trainingDataSetList,attrs,originalAttrs);
 		rootNode.geniImpurityThreshold				= Double.parseDouble(GeniThresholdTF.getText());
 		rootNode.branchNode();
 		rootNode.visualNode(treeRootVisualNode,decisionTreeModel,decisionTreeView);
@@ -134,7 +152,7 @@ public class MainController {
 //		zoomToFitTree();
 //		decisionTreeView.setOrientation(2);
 
-		StatusTA.setText(rootNode.report());
+//		StatusTA.setText(rootNode.report());
 		StatusLB.setText("Decision Tree @ Geni Impurity Threshold : "+ GeniThresholdTF.getText());
 //		saveSnapShot();
 		
