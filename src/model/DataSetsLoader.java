@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Scanner;
 
@@ -18,7 +19,7 @@ public class DataSetsLoader {
 	public HashSet<String> dataSetClasses			= new HashSet<>();
 	public BaseClassifier myclassifier;
 	public String dataSetName;
-	public HashSet<String> dataSetAttrsLabels		= new HashSet<>();
+	public LinkedHashSet<String> dataSetAttrsLabels = new LinkedHashSet<>();
 	
 	@Override
 	public String toString() {

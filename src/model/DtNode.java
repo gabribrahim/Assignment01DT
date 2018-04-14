@@ -28,28 +28,38 @@ public class DtNode {
 	int numberOfAttrsAtInitiation ;
 	String baseClassifier							= "live";
 	
+	public void printListofInstance(ArrayList<LabelledDataInstance>instances) {
+		
+		for (LabelledDataInstance debuginstance :instances) {
+			System.out.println(debuginstance.labelName+","+debuginstance.featureListAsValues);
+		}		
+	}
 	public String predict(LabelledDataInstance testInstance, TextArea debug) {
-		if (isEmpty()) {
-			return baseClassifier;
-		}
+		String result;
 		if (isPure()) {
+//			System.out.println("Passing Prediction AS"+ containedInstances.get(0).labelName);
+//			printListofInstance(containedInstances);
 			return containedInstances.get(0).labelName;
 		}
+		
+		if (isEmpty() && !isPure()) {
+			return baseClassifier;
+		}
+
 		int featureIndex							= originalAttrslist.indexOf(this.attributeToSplitOn);
 		boolean valueOfFeature						= testInstance.featureListAsValues.get(featureIndex);
 
 		String debugMessage =" Node>"+this.attributeToSplitOn+" "+containedInstances.size()+" "+ valueOfFeature+"\n";
 		pp(debugMessage);
 		
-		debug.insertText(0, debugMessage);
+		debug.appendText(debugMessage);
 		if (valueOfFeature) {
-			leftSideNode.predict(testInstance,debug);
+			result = leftSideNode.predict(testInstance,debug);
 		}
 		else {
-			rightSideNode.predict(testInstance,debug);
+			result = rightSideNode.predict(testInstance,debug);
 		}
-			
-		return containedInstances.get(0).labelName;
+		return result;
 	}
 	public String getBestAttr() {
 		
@@ -111,10 +121,13 @@ public class DtNode {
 		instancesTrue.clear();
 		instancesFalse.clear();
 		
-		pp("Checking Attr:. "+attribute);
+		pp("Checking Attr:. "+attribute+" "+containedInstances.size());
 		
 		for (LabelledDataInstance instance :containedInstances) {
-			if (instance.featureListAsValues.get(indexOfAttribute)) {
+			boolean attributeBoolean			= instance.featureListAsValues.get(indexOfAttribute);
+//			System.out.println(attribute + "____"+String.valueOf(attributeBoolean)+instance.labelName+
+//					indexOfAttribute);
+			if (attributeBoolean==true) {
 				instancesTrue.add(instance);
 			}
 			else {
@@ -123,8 +136,15 @@ public class DtNode {
 		}
 		
 		pp("True Instances = "+instancesTrue.size());
+		if (instancesTrue.size()==2) {
+			pp(instancesTrue.get(0).labelName+","+instancesTrue.get(0).featureListAsValues);
+			pp(instancesTrue.get(0).labelName+","+instancesTrue.get(0).featureListAsValues);
+			}
 		pp("False Instances = "+instancesFalse.size());
-		
+		if (instancesFalse.size()==2) {
+			pp(instancesFalse.get(0).labelName+","+instancesFalse.get(0).featureListAsValues);
+			pp(instancesFalse.get(0).labelName+","+instancesFalse.get(0).featureListAsValues);
+			}				
 		int liveCount 				= 0;
 		int dieCount				= 0;
 		double trueImpurity		    = 0;
@@ -236,7 +256,12 @@ public class DtNode {
 			Node childVisualNode				= decisionTreeModel.addChild(startNode);
 			childVisualNode.setString("label", child.getBestAttr());
 			child.visualNode(childVisualNode, decisionTreeModel,decisionTreeView);
-			
+
+		
+//		this.leftSideNode
+//		Node childVisualNode				= decisionTreeModel.addChild(startNode);
+//		childVisualNode.setString("label", leftSideNode.getBestAttr());	
+//		this.leftSideNode.visualNode(childVisualNode, decisionTreeModel,decisionTreeView);
 		}
 		
 

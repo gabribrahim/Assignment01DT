@@ -51,11 +51,13 @@
             <VBox prefHeight="457.0" prefWidth="259.0">
                <children>
                   <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#loadDataSet" prefHeight="39.0" prefWidth="755.0" text="Load Hepatitis Data Set" />
+                  <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#LoadTestRunN" prefHeight="39.0" prefWidth="260.0" text="Load Test Run N" />
                   <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#buildTree" prefHeight="39.0" prefWidth="755.0" text="Build Tree" />
+                  <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#measurePerformanceOnTestDataSet" prefHeight="39.0" prefWidth="755.0" text="Accuracy from Test Set" />
                   <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#zoomToFitTree" prefHeight="39.0" prefWidth="755.0" text="Fit View To Tree Nodes" />
                   <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#expandAllNode" prefWidth="755.0" text="Expand All Nodes" />
                   <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#saveSnapShot" prefWidth="755.0" text="Save Tree To PNG" />
-                  <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#measurePerformanceOnTestDataSet" prefHeight="39.0" prefWidth="755.0" text="Accuracy from Test Set" />
+                  <Button alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#debug" prefHeight="39.0" prefWidth="283.0" text="Debug" />
                   <TextArea fx:id="StatusTA" maxWidth="-Infinity" prefHeight="457.0" prefWidth="755.0" VBox.vgrow="ALWAYS" />
                </children>
             </VBox>

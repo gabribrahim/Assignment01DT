@@ -21,6 +21,7 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
@@ -68,6 +69,32 @@ public class MainController {
 
 	}
 	
+	public void LoadTestRunN() {
+		TextInputDialog dialog = new TextInputDialog("1");
+		dialog.setTitle("Load Split Data Set");
+		dialog.setHeaderText("There are 10 Test Runs as per Assignment handout\n"
+				+"Please kindly provide a number between 1 & 10");
+		dialog.setContentText("Test Run Number = ");
+
+		// Traditional way to get the response value.
+		Optional<String> result = dialog.showAndWait();
+		if (result.isPresent()){
+			int fileNumber				= Integer.parseInt(result.get());
+			String trainingFileName		= "hepatitis-training-run"+String.format("%02d",fileNumber )+".dat";
+			String testFileName			= "hepatitis-test-run"+String.format("%02d",fileNumber )+".dat";
+			
+			System.out.println("Loading Hep DataSet");
+			myDataLoader.dataSetName = "Hepatitis TestRun "+ String.valueOf(fileNumber);
+			myDataLoader.clear();
+
+			String trainingFilePath		= System.getProperty("user.dir").replace('\\', '/') + "/"+trainingFileName;
+			String testFilePath			= System.getProperty("user.dir").replace('\\', '/') + "/"+testFileName;
+			myDataLoader.loadHepDataSet(trainingFilePath, myDataLoader.trainingDataSetList);
+			StatusTA.setText(myDataLoader.toString());
+			myDataLoader.loadHepDataSet(testFilePath, myDataLoader.testDataSetList);
+			StatusTA.appendText("Test Data Set Size = " + myDataLoader.testDataSetList.size());			
+		}			
+	}
 	public void loadDataSet() {
 		System.out.println("Loading Hep DataSet");
 		myDataLoader.dataSetName = "Hepatitis Dataset";
@@ -108,13 +135,21 @@ public class MainController {
 		decisionTreeView.getVisualization().run("edgeColor");
 		
 	}
-	
+	public void debug() {
+		LabelledDataInstance testInstance 	= myDataLoader.testDataSetList.get(26);
+		String prediction 					= rootNode.predict(testInstance,StatusTA);
+		StatusTA.insertText(0,"Prediction="+prediction+"\nClass="+testInstance.labelName+"\n");
+	}
+
 	public void measurePerformanceOnTestDataSet() {
 		int hit								= 0;
+		StatusTA.setText("");
 		for (LabelledDataInstance testInstance : myDataLoader.testDataSetList) {
-			String prediction = rootNode.predict(testInstance,StatusTA);
 			int testInstanceIndex = myDataLoader.testDataSetList.indexOf(testInstance);
-			StatusTA.insertText(0, "["+testInstanceIndex+"]"+ prediction +"<<>>"+testInstance.labelName+"\n");
+			StatusTA.appendText("==TestInstance[ "+testInstanceIndex+" ]======\n");
+			String prediction 				= rootNode.predict(testInstance,StatusTA);			
+			StatusTA.appendText("Prediction:"+ prediction +"\nTrueLabel:"+testInstance.labelName+"\n");
+			StatusTA.appendText("========================\n");
 			if (prediction.equals(testInstance.labelName)) {
 				hit++;
 			}
@@ -143,7 +178,8 @@ public class MainController {
 		
 		ArrayList<String> attrs						= new ArrayList<String>(myDataLoader.dataSetAttrsLabels);
 		ArrayList<String> originalAttrs				= new ArrayList<String>(myDataLoader.dataSetAttrsLabels);
-		
+		System.out.println(originalAttrs);
+		System.out.println(myDataLoader.dataSetAttrsLabels);
 		rootNode									= new DtNode(myDataLoader.trainingDataSetList,attrs,originalAttrs);
 		rootNode.geniImpurityThreshold				= Double.parseDouble(GeniThresholdTF.getText());
 		rootNode.branchNode();
