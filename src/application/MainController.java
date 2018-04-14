@@ -140,7 +140,27 @@ public class MainController {
 		String prediction 					= rootNode.predict(testInstance,StatusTA);
 		StatusTA.insertText(0,"Prediction="+prediction+"\nClass="+testInstance.labelName+"\n");
 	}
-
+	public void showBaslineClassifierPerformance() {
+		int liveCount						= 0;
+		int dieCount						= 0;
+		double accuracy						= 0.0;
+		String baselineLabel				= "";
+		int hit								= 0;
+		for (LabelledDataInstance testInstance: myDataLoader.trainingDataSetList) {
+		if (testInstance.labelName.equals("live")) {liveCount++;}
+		if (testInstance.labelName.equals("die")) {dieCount++;}
+		}
+		if (liveCount>dieCount) {baselineLabel="live";}
+		if (liveCount<dieCount) {baselineLabel="die";}
+		
+		for (LabelledDataInstance testInstance : myDataLoader.testDataSetList) {
+			if (testInstance.labelName.equals(baselineLabel)) {hit++;}
+			}
+		accuracy							= (double)hit / myDataLoader.testDataSetList.size();
+		StatusTA.setText("Basline Classifier Accuracy="+accuracy+"SuccessFul Predictions="+hit+"\n"
+						+"Training Set Break Down\nClasses Labelled Live:"+liveCount+"\nClasses Labelled Die:"+dieCount);
+		
+	}
 	public void measurePerformanceOnTestDataSet() {
 		int hit								= 0;
 		StatusTA.setText("");
